@@ -40,13 +40,13 @@ def build_index(in_dir, out_dict, out_postings):
     sorted_files = sorted(files, key=lambda f: int(
         os.path.splitext(f)[0]))  # sorted files
 
-    # Word_processing and tokenisation for each file
+    # Word processing and tokenisation for each document
     for file in sorted_files:
         file_path = join(in_dir, file)
         f = open(file_path, "r")
-        # Set data structure is used to account for repeated words in the same file
+        # Set data structure is used to account for repeated words in the same document
         terms = set()
-        # Store all terms for the purpose of tracking termFrequency per document
+        # Store all words for the purpose of tracking term frequency per document
         termsTF = []
         for line in f:
             new_line = ''
@@ -59,7 +59,7 @@ def build_index(in_dir, out_dict, out_postings):
                     word = stemmer.stem(word)
                     terms.add(word)
                     termsTF.append(word)
-        # Populate the index_dict
+        # Populate index_dict
         # index_dict = {token: docFrequency}
         for t in terms:
             if t in index_dict.keys():
@@ -68,7 +68,7 @@ def build_index(in_dir, out_dict, out_postings):
                 index_dict[t] = docFreq
             else:
                 index_dict[t] = 1
-        # Populate the postings_dict
+        # Populate postings_dict
         # postings_dict = {token: {docId: termFrequency}}
         for t in termsTF:
             if t in postings_dict.keys():
@@ -82,28 +82,47 @@ def build_index(in_dir, out_dict, out_postings):
                 postings_dict[t] = {}
                 postings_dict[t][int(file)] = 1
 
-    # Sort index dictionary
+    # Sort index_dict
     sorted_index_dict_array = sorted(index_dict.items())
-    sorted_dict = {}
+    sorted_index_dict = {}
     for termID, (term, value) in enumerate(sorted_index_dict_array):
         # Addition of 1 to ensure termID starts of from value 1
         termID += 1
         docFrequency = value
-        sorted_dict[term] = [termID, docFrequency]
-    # Dictionary is now {term : [termID, docFrequency]}
+        sorted_index_dict[term] = [termID, docFrequency]
+    # Dictionary is now {term : [termID, docFrequency]}, termId not in use
 
-    # Sort postings dictionary
-    #print('UNSORTED: \n', postings_dict)
+    # Sort postings_dict
     sorted_postings_dict_array = sorted(postings_dict.items())
-    #print('SORTED: \n',sorted_postings_dict_array)
-    sorted_postings = {}
-    for (term, dictionary) in sorted_postings_dict_array:
-        print('TERM ', term)
-        print(dictionary)
 
+    # Output postings file
+    postings_out = open(out_postings, 'w')
 
-def create_posting_lists(input_dict):
-    pass
+    # Generate and write postingStrings to postings file
+    # Store charOffset and stringLength in sorted_index_dict
+    char_offset = 0
+    for (term, term_dict) in sorted_postings_dict_array:
+        postingStr,strLength = create_postings(term_dict)
+        print('{}: {},{}'.format(term,char_offset,strLength))
+        postings_out.write(postingStr)
+        termId, docFrequency = sorted_index_dict[term]
+        sorted_index_dict[term] = (termId,docFrequency,char_offset,strLength)
+        char_offset+=strLength
+    postings_out.close()
+    # Final dictionary is now {term : [termID, termFrequency,charOffSet,strLength]}
+
+    # Save dictionary using pickle
+    pickle.dump(sorted_index_dict, open(out_dict, "wb"))
+    print('done!')
+
+def create_postings(term_dictionary):
+    result = ''
+    for docId, freq in term_dictionary.items():
+        result+=str(docId)
+        result+='^'
+        result+=str(freq)
+        result+=','
+    return result[:-1],len(result[:-1]) # Output postingStr format: 'docId^termFrequency,docId^termFrequency'
 
 input_directory = output_file_dictionary = output_file_postings = None
 

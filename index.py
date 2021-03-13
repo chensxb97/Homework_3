@@ -45,10 +45,10 @@ def build_index(in_dir, out_dict, out_postings):
     for file in sorted_files:
         file_path = join(in_dir, file)
         f = open(file_path, "r")
-        # Set data structure is used to account for repeated words in the same document
-        terms = set()
         # Store all words for the purpose of tracking termFrequency per document
         termsTF = []
+        # Set data structure is used to account for repeated words in the same document
+        terms = set()
         docLength = 0
         for line in f:
             new_line = ''
@@ -61,16 +61,6 @@ def build_index(in_dir, out_dict, out_postings):
                     word = stemmer.stem(word)
                     terms.add(word)
                     termsTF.append(word)
-
-        # Populate index_dict
-        # index_dict = {token: docFrequency}
-        for t in terms:
-            if t in index_dict.keys():
-                docFreq = index_dict[t]
-                docFreq += 1
-                index_dict[t] = docFreq
-            else:
-                index_dict[t] = 1
 
         # Populate postings_dict
         # postings_dict = {token: {docId: termFrequency}}
@@ -86,9 +76,16 @@ def build_index(in_dir, out_dict, out_postings):
                 postings_dict[t] = {}
                 postings_dict[t][int(file)] = 1
 
-        # Populate docLengths_dict
+        # Populate index_dict and docLengths_dict
+        # index_dict = {token: docFrequency}
         # docLengths_dict = {docId: docLength}
         for t in terms:
+            if t in index_dict.keys():
+                docFreq = index_dict[t]
+                docFreq += 1
+                index_dict[t] = docFreq
+            else:
+                index_dict[t] = 1
             docLength+= (1+math.log10(postings_dict[t][int(file)]))**2
         docLength = math.sqrt(docLength)
         docLengths_dict[int(file)]=docLength

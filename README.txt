@@ -1,4 +1,7 @@
-This is the README file for A0000000X's submission
+This is the README file for A0228375X-A0228420N's submission 
+Email: 
+e0673208@u.nus.edu (A0228375X)
+e0673253@u.nus.edu (A0228420N)
 
 == Python Version ==
 
@@ -11,32 +14,38 @@ Give an overview of your program, describe the important algorithms/steps
 in your program, and discuss your experiments in general.  A few paragraphs 
 are usually sufficient.
 
+<Please fill in>
+
 == Files included with this submission ==
 
 List the files in your submission here and provide a short 1 line
 description of each file.  Make sure your submission's files are named
 and formatted correctly.
 
+<Please fill in>
+
 == Statement of individual work ==
 
 Please put a "x" (without the double quotes) into the bracket of the appropriate statement.
 
-[ ] I/We, A0000000X, certify that I/we have followed the CS 3245 Information
-Retrieval class guidelines for homework assignments.  In particular, I/we
-expressly vow that I/we have followed the Facebook rule in discussing
+[x] I, A0228375X-A0228420N, certify that I have followed the CS 3245 Information
+Retrieval class guidelines for homework assignments.  In particular, I
+expressly vow that I have followed the Facebook rule in discussing
 with others in doing the assignment and did not take notes (digital or
 printed) from the discussions.  
 
-[ ] I/We, A0000000X, did not follow the class rules regarding homework
+[] I, A0228375X-A0228420N, did not follow the class rules regarding homework
 assignment, because of the following reason:
 
-<Please fill in>
+NIL
 
-We suggest that we should be graded as follows:
+I suggest that I should be graded as follows:
 
-<Please fill in>
+NIL
 
 == References ==
 
 <Please list any websites and/or people you consulted with for this
 assignment and state their role>
+
+<Please fill in>

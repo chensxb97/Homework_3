@@ -5,7 +5,7 @@ e0673253@u.nus.edu (A0228420N)
 
 == Python Version ==
 
-I'm (We're) using Python Version <3.7.6 or replace version number> for
+We're using Python Version 3.7.4 for
 this assignment.
 
 == General Notes about this assignment ==

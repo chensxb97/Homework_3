@@ -3,9 +3,23 @@ import re
 import nltk
 import sys
 import getopt
+import sys
+import string
+import os
+import pickle
+import math
+import linecache
+from os import listdir
+from os.path import join, isfile
+from nltk.stem.porter import PorterStemmer
+
+# python3 index.py -i './sample_data' -d dictionary.txt -p postings.txt
+
 
 def usage():
-    print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
+    print("usage: " +
+          sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
+
 
 def build_index(in_dir, out_dict, out_postings):
     """
@@ -16,6 +30,81 @@ def build_index(in_dir, out_dict, out_postings):
     # This is an empty method
     # Pls implement your code in below
 
+    # Initialisation
+    list_punc = list(string.punctuation)
+    stemmer = PorterStemmer()
+    index_dict = {}
+    postings_dict = {}
+    files = [f for f in listdir(in_dir) if isfile(
+        join(in_dir, f))]  # all files from directory
+    sorted_files = sorted(files, key=lambda f: int(
+        os.path.splitext(f)[0]))  # sorted files
+
+    # Word_processing and tokenisation for each file
+    for file in sorted_files:
+        file_path = join(in_dir, file)
+        f = open(file_path, "r")
+        # Set data structure is used to account for repeated words in the same file
+        terms = set()
+        # Store all terms for the purpose of tracking termFrequency per document
+        termsTF = []
+        for line in f:
+            new_line = ''
+            for c in line:
+                if c not in list_punc:
+                    new_line += c
+            new_line = new_line.lower()
+            for sentence in nltk.sent_tokenize(new_line):
+                for word in nltk.word_tokenize(sentence):
+                    word = stemmer.stem(word)
+                    terms.add(word)
+                    termsTF.append(word)
+        # Populate the index_dict
+        # index_dict = {token: docFrequency}
+        for t in terms:
+            if t in index_dict.keys():
+                docFreq = index_dict[t]
+                docFreq += 1
+                index_dict[t] = docFreq
+            else:
+                index_dict[t] = 1
+        # Populate the postings_dict
+        # postings_dict = {token: {docId: termFrequency}}
+        for t in termsTF:
+            if t in postings_dict.keys():
+                if int(file) in postings_dict[t].keys():
+                    termFreq = postings_dict[t][int(file)]
+                    termFreq += 1
+                    postings_dict[t][int(file)] = termFreq
+                else:
+                    postings_dict[t][int(file)] = 1
+            else:
+                postings_dict[t] = {}
+                postings_dict[t][int(file)] = 1
+
+    # Sort index dictionary
+    sorted_index_dict_array = sorted(index_dict.items())
+    sorted_dict = {}
+    for termID, (term, value) in enumerate(sorted_index_dict_array):
+        # Addition of 1 to ensure termID starts of from value 1
+        termID += 1
+        docFrequency = value
+        sorted_dict[term] = [termID, docFrequency]
+    # Dictionary is now {term : [termID, docFrequency]}
+
+    # Sort postings dictionary
+    #print('UNSORTED: \n', postings_dict)
+    sorted_postings_dict_array = sorted(postings_dict.items())
+    #print('SORTED: \n',sorted_postings_dict_array)
+    sorted_postings = {}
+    for (term, dictionary) in sorted_postings_dict_array:
+        print('TERM ', term)
+        print(dictionary)
+
+
+def create_posting_lists(input_dict):
+    pass
+
 input_directory = output_file_dictionary = output_file_postings = None
 
 try:
@@ -25,11 +114,11 @@ except getopt.GetoptError:
     sys.exit(2)
 
 for o, a in opts:
-    if o == '-i': # input directory
+    if o == '-i':  # input directory
         input_directory = a
-    elif o == '-d': # dictionary file
+    elif o == '-d':  # dictionary file
         output_file_dictionary = a
-    elif o == '-p': # postings file
+    elif o == '-p':  # postings file
         output_file_postings = a
     else:
         assert False, "unhandled option"

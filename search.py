@@ -49,29 +49,32 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     for query in queries:
         for sentence in nltk.sent_tokenize(query):
             # Store all normalized query tf-idf weights in query_dict
-            query_dict = process_query(sentence,sorted_index_dict,collection_size,stemmer)
+            query_dict = process_query(
+                sentence, sorted_index_dict, collection_size, stemmer)
             #print('QUERY DICTIONARY\n',query_dict)
 
             # Store all normalized document tf weights in document_dict
-            document_dict = process_documents(query_dict,sorted_index_dict,docLengths_dict,postings)
+            document_dict = process_documents(
+                query_dict, sorted_index_dict, docLengths_dict, postings)
             #print('DOCUMENT DICTIONARY\n',document_dict)
 
             # Generates the top 10 documents for the query
-            scores = process_scores(query_dict,document_dict)
+            scores = process_scores(query_dict, document_dict)
 
             query_results.append(scores)
 
     # Write results into given results_file
     with open(results_file, 'w') as results_file:
         for result in query_results:
-            for index, (docID,score) in enumerate(result):
+            for index, (docID, score) in enumerate(result):
                 results_file.write(docID)
                 results_file.write(' ')
             results_file.write('\n')
 
     print('done!')
 
-def process_query(input_query,sorted_index_dict,collection_size,stemmer):
+
+def process_query(input_query, sorted_index_dict, collection_size, stemmer):
     query_dict = {}
     for word in nltk.word_tokenize(input_query):
         word = word.lower()
@@ -96,7 +99,7 @@ def process_query(input_query,sorted_index_dict,collection_size,stemmer):
         # Store wt for each word in query back into dictionary
         query_dict[word] = q_wt
         normalize_query += math.pow(q_wt, 2)
-    if normalize_query ==0:
+    if normalize_query == 0:
         return None
     # Calculate the cosine normalized value for query
     for word in query_dict.keys():
@@ -106,16 +109,17 @@ def process_query(input_query,sorted_index_dict,collection_size,stemmer):
 
     return query_dict
 
-def process_documents(query_dictionary,sorted_index_dict, docLengths_dict,input_postings):
+
+def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, input_postings):
     # document_dict = {document1: {word1: tf1, word2: tf2}, document2:{}...}
-    if query_dictionary ==None:
+    if query_dictionary == None:
         return None
     document_dict = {}
     for word in query_dictionary.keys():
         if word in sorted_index_dict.keys():
             charOffset = sorted_index_dict[word][2]
             strLength = sorted_index_dict[word][3]
-            input_postings.seek(charOffset,0)
+            input_postings.seek(charOffset, 0)
             posting_str = (input_postings.read(strLength))
             posting_array = posting_str.split(',')
             for p in posting_array:
@@ -146,8 +150,9 @@ def process_documents(query_dictionary,sorted_index_dict, docLengths_dict,input_
 
     return document_dict
 
-def process_scores(query_dictionary,document_dictionary):
-    if query_dictionary== None:
+
+def process_scores(query_dictionary, document_dictionary):
+    if query_dictionary == None:
         return None
     result = []
     for docID in document_dictionary.keys():
@@ -155,10 +160,11 @@ def process_scores(query_dictionary,document_dictionary):
         for term in query_dictionary.keys():
             doc_wt = document_dictionary[docID][term]
             term_wt = query_dictionary[term]
-            docScore+=doc_wt*term_wt
-        result.append((docID,docScore))
-    sorted_results = sorted(result, key=lambda x: x[1],reverse = True)
+            docScore += doc_wt*term_wt
+        result.append((docID, docScore))
+    sorted_results = sorted(result, key=lambda x: x[1], reverse=True)
     return sorted_results[:10]
+
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 

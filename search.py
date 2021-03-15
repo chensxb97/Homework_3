@@ -3,6 +3,12 @@ import re
 import nltk
 import sys
 import getopt
+import math
+import pickle
+import os
+from nltk.stem.porter import PorterStemmer
+
+# python3 search.py -d dictionary.txt -p postings.txt  -q queries.txt -o results.txt
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -15,6 +21,46 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     print('running search on the queries...')
     # This is an empty method
     # Pls implement your code in below
+    # Initialise stemmer
+    stemmer = PorterStemmer()
+
+    # Open and load dictionary
+    # Sorted index dictionary is {term : [termID,docFrequency,charOffSet,strLength]}
+    # Document length dictionary is {docID: cosine normalized document length}
+    in_dict = open(dict_file, 'rb')
+    sorted_dict = pickle.load(in_dict)
+    sorted_index_dict = sorted_dict[0]
+    docLengths_dict = sorted_dict[1]
+    # Number of documents calculated for idf calculation
+    number_of_documents = len(docLengths_dict)
+
+    # Open posting lists, but not loaded into memory
+    postings = open(postings_file, 'r')
+
+    # Open queries file
+    queries = open(queries_file, 'r')
+
+    # Process queries ()
+    # Create query_array = [{word: word frequency in query1},{word: word frequency in query2}...]
+    query_array = []
+    for line in queries:
+        for sentence in nltk.sent_tokenize(line):
+            query_dict = {}
+            for word in nltk.word_tokenize(sentence):
+                word = word.lower()
+                word = stemmer.stem(word)
+                if word in query_dict.keys():
+                    query_dict[word] += 1
+                else:
+                    query_dict[word] = 1
+            query_array.append(query_dict)
+    print(query_array)
+
+
+                
+
+
+            
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 

@@ -64,7 +64,7 @@ def build_index(in_dir, out_dict, out_postings):
                     word = stemmer.stem(word)
                     termList.append(word)
                     termSet.add(word)
-                    
+
         # Populate postings_dict
         # postings_dict = {token: {docId: termFrequency}}
         for t in termList:
@@ -89,12 +89,12 @@ def build_index(in_dir, out_dict, out_postings):
                 index_dict[t] = docFreq
             else:
                 index_dict[t] = 1
-            docLength += math.pow(1+math.log10(postings_dict[t][int(file)]),2)
+            docLength += math.pow(1+math.log10(postings_dict[t][int(file)]), 2)
         docLength = math.sqrt(docLength)
         docLengths_dict[int(file)] = docLength
 
         # Increment collection size
-        collection_size+=1
+        collection_size += 1
 
     # Sort index_dict
     sorted_index_dict_array = sorted(index_dict.items())
@@ -126,7 +126,8 @@ def build_index(in_dir, out_dict, out_postings):
     # Final dictionary is now {term : [termID,docFrequency,charOffSet,strLength]}
 
     # Save index, length dictionaries and collection size using pickle
-    pickle.dump([sorted_index_dict, docLengths_dict,collection_size], open(out_dict, "wb"))
+    pickle.dump([sorted_index_dict, docLengths_dict,
+                 collection_size], open(out_dict, "wb"))
     print('done!')
 
 

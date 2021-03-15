@@ -7,6 +7,7 @@ import math
 import pickle
 import os
 from nltk.stem.porter import PorterStemmer
+from heapq import nlargest
 
 # python3 search.py -d dictionary.txt -p postings.txt  -q queries.txt -o results.txt
 
@@ -66,11 +67,13 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # Write results into given results_file
     with open(results_file, 'w') as results_file:
         for result in query_results:
-            for index, (docID, score) in enumerate(result):
-                results_file.write(docID)
-                results_file.write(' ')
+            # If result is empty, just write an empty line
+            # If result is not empty, write each documentID (starting from highest rank) with a whitespace separating each documentID
+            if result is not None:
+                for index, (docID, score) in enumerate(result):
+                    results_file.write(docID)
+                    results_file.write(' ')
             results_file.write('\n')
-
     print('done!')
 
 
@@ -162,8 +165,8 @@ def process_scores(query_dictionary, document_dictionary):
             term_wt = query_dictionary[term]
             docScore += doc_wt*term_wt
         result.append((docID, docScore))
-    sorted_results = sorted(result, key=lambda x: x[1], reverse=True)
-    return sorted_results[:10]
+    # Use heapq library 'nlargest' function to return top 10 results in O(10logn) time instead of sorting the entire array which would be O(nlogn) time
+    return nlargest(10, result, key=lambda x: x[1])
 
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None

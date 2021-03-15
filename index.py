@@ -45,11 +45,13 @@ def build_index(in_dir, out_dict, out_postings):
     for file in sorted_files:
         file_path = join(in_dir, file)
         f = open(file_path, "r")
-        # Store all words for the purpose of tracking termFrequency per document
-        termsTF = []
-        # Set data structure is used to account for repeated words in the same document
-        terms = set()
+
+        # Store all words in a list, used to track termFrequency
+        termList = []
+        # Set data structure is used to store the unique words only
+        termSet = set()
         docLength = 0
+
         for line in f:
             new_line = ''
             for c in line:
@@ -59,12 +61,12 @@ def build_index(in_dir, out_dict, out_postings):
             for sentence in nltk.sent_tokenize(new_line):
                 for word in nltk.word_tokenize(sentence):
                     word = stemmer.stem(word)
-                    terms.add(word)
-                    termsTF.append(word)
-
+                    termList.append(word)
+                    termSet.add(word)
+                    
         # Populate postings_dict
         # postings_dict = {token: {docId: termFrequency}}
-        for t in termsTF:
+        for t in termList:
             if t in postings_dict.keys():
                 if int(file) in postings_dict[t].keys():
                     termFreq = postings_dict[t][int(file)]
@@ -79,7 +81,7 @@ def build_index(in_dir, out_dict, out_postings):
         # Populate index_dict and docLengths_dict
         # index_dict = {token: docFrequency}
         # docLengths_dict = {docId: docLength}
-        for t in terms:
+        for t in termSet:
             if t in index_dict.keys():
                 docFreq = index_dict[t]
                 docFreq += 1

@@ -86,9 +86,9 @@ def build_index(in_dir, out_dict, out_postings):
                 index_dict[t] = docFreq
             else:
                 index_dict[t] = 1
-            docLength+= (1+math.log10(postings_dict[t][int(file)]))**2
+            docLength += (1+math.log10(postings_dict[t][int(file)]))**2
         docLength = math.sqrt(docLength)
-        docLengths_dict[int(file)]=docLength
+        docLengths_dict[int(file)] = docLength
 
     # Sort index_dict
     sorted_index_dict_array = sorted(index_dict.items())
@@ -110,26 +110,30 @@ def build_index(in_dir, out_dict, out_postings):
     # Store charOffset and stringLength in sorted_index_dict
     char_offset = 0
     for (term, term_dict) in sorted_postings_dict_array:
-        postingStr,strLength = create_postings(term_dict)
+        postingStr, strLength = create_postings(term_dict)
         postings_out.write(postingStr)
         termId, docFrequency = sorted_index_dict[term]
-        sorted_index_dict[term] = (termId,docFrequency,char_offset,strLength)
-        char_offset+=strLength
+        sorted_index_dict[term] = (
+            termId, docFrequency, char_offset, strLength)
+        char_offset += strLength
     postings_out.close()
     # Final dictionary is now {term : [termID,docFrequency,charOffSet,strLength]}
 
     # Save index and length dictionaries using pickle
-    pickle.dump([sorted_index_dict,docLengths_dict],open(out_dict,"wb"))
+    pickle.dump([sorted_index_dict, docLengths_dict], open(out_dict, "wb"))
     print('done!')
+
 
 def create_postings(term_dictionary):
     result = ''
     for docId, freq in term_dictionary.items():
-        result+=str(docId)
-        result+='^'
-        result+=str(freq)
-        result+=','
-    return result[:-1],len(result[:-1]) # Output postingStr format: 'docId^termFrequency,docId^termFrequency'
+        result += str(docId)
+        result += '^'
+        result += str(freq)
+        result += ','
+    # Output postingStr format: 'docId^termFrequency,docId^termFrequency'
+    return result[:-1], len(result[:-1])
+
 
 input_directory = output_file_dictionary = output_file_postings = None
 

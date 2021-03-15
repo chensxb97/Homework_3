@@ -10,8 +10,11 @@ from nltk.stem.porter import PorterStemmer
 
 # python3 search.py -d dictionary.txt -p postings.txt  -q queries.txt -o results.txt
 
+
 def usage():
-    print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
+    print("usage: " +
+          sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
+
 
 def run_search(dict_file, postings_file, queries_file, results_file):
     """
@@ -53,14 +56,29 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     query_dict[word] += 1
                 else:
                     query_dict[word] = 1
+            # Denominator for normalization of tf-idf (query)
+            normalize_query = 0
+            for word in query_dict.keys():
+                # Calculate tf-wt
+                tf = query_dict[word]
+                tf_wt = 1 + math.log(tf, 10)
+                # Calculate idf
+                if word in sorted_index_dict.keys():
+                    df = sorted_index_dict[word][1]
+                    idf = math.log(number_of_documents/df, 10)
+                else:
+                    idf = 0
+                wt = tf_wt * idf
+                # Store wt for each word in query back into dictionary
+                query_dict[word] = wt
+                normalize_query += math.pow(wt, 2)
+            for word in query_dict.keys():
+                wt = query_dict[word]
+                normalize_wt = wt/normalize_query
+                query_dict[word] = normalize_wt
             query_array.append(query_dict)
     print(query_array)
 
-
-                
-
-
-            
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 
@@ -72,7 +90,7 @@ except getopt.GetoptError:
 
 for o, a in opts:
     if o == '-d':
-        dictionary_file  = a
+        dictionary_file = a
     elif o == '-p':
         postings_file = a
     elif o == '-q':
@@ -82,7 +100,7 @@ for o, a in opts:
     else:
         assert False, "unhandled option"
 
-if dictionary_file == None or postings_file == None or file_of_queries == None or file_of_output == None :
+if dictionary_file == None or postings_file == None or file_of_queries == None or file_of_output == None:
     usage()
     sys.exit(2)
 

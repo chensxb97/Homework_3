@@ -60,24 +60,63 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             normalize_query = 0
             for word in query_dict.keys():
                 # Calculate tf-wt
-                tf = query_dict[word]
-                tf_wt = 1 + math.log(tf, 10)
+                q_tf = query_dict[word]
+                q_tf_wt = 1 + math.log(q_tf, 10)
                 # Calculate idf
                 if word in sorted_index_dict.keys():
-                    df = sorted_index_dict[word][1]
-                    idf = math.log(number_of_documents/df, 10)
+                    q_df = sorted_index_dict[word][1]
+                    q_idf = math.log(number_of_documents/q_df, 10)
                 else:
                     idf = 0
-                wt = tf_wt * idf
+                q_wt = q_tf_wt * q_idf
                 # Store wt for each word in query back into dictionary
-                query_dict[word] = wt
-                normalize_query += math.pow(wt, 2)
+                query_dict[word] = q_wt
+                normalize_query += math.pow(q_wt, 2)
+            # Calculate the cosine normalized value for query tf-idf
             for word in query_dict.keys():
-                wt = query_dict[word]
-                normalize_wt = wt/normalize_query
+                q_wt = query_dict[word]
+                normalize_wt = q_wt/math.sqrt(normalize_query)
                 query_dict[word] = normalize_wt
+
+            print(query_dict)
+
+            # Parse postings list for each word for valid documents which contains these words
+            # Each document we will have an array of numbers for each word in the query
+            document_dict = {}
+            for word in query_dict.keys():
+                if word in sorted_index_dict.keys():
+                    termID = sorted_index_dict[word][0]
+                    charOffset = sorted_index_dict[word][2]
+                    strLength = sorted_index_dict[word][3]
+                    postings.seek(charOffset, 0)
+                    posting_str = (postings.read(strLength))
+                    p_array = posting_str.split(',')
+                    for p in p_array:
+                        documentID = p.split('^')[0]
+                        tf_raw = p.split('^')[1]
+                        document_dict[documentID] = {}
+                        document_dict[documentID][word] = tf_raw
+                else:
+                    pass
+
+            normalize_doc = 0
+            for document in document_dict.keys():
+                for word in query_dict.keys():
+                    if word in document_dict[document].keys():
+                        d_tf = int(document_dict[document][word])
+                        d_tf_wt = 1 + math.log(d_tf, 10)
+                        document_dict[document][word] = d_tf_wt
+                        normalize_doc += math.pow(d_tf_wt, 2)
+                    else:
+                        document_dict[document][word] = 0
+                for word in query_dict.keys():
+                    d_wt = document_dict[document][word]
+                    d_normalize_wt = d_wt/math.sqrt(normalize_doc)
+                    document_dict[document][word] = d_normalize_wt
+
+            print(document_dict)
+
             query_array.append(query_dict)
-    print(query_array)
 
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None

@@ -104,7 +104,7 @@ def build_index(in_dir, out_dict, out_postings):
         termID += 1
         docFrequency = value
         sorted_index_dict[term] = [termID, docFrequency]
-    # Dictionary is now {term : [termID, docFrequency]}, termId currently not in use
+    # Dictionary is now {term : [termID, docFrequency]}
 
     # Sort postings_dict
     sorted_postings_dict_array = sorted(postings_dict.items())

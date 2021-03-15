@@ -36,6 +36,7 @@ def build_index(in_dir, out_dict, out_postings):
     index_dict = {}
     postings_dict = {}
     docLengths_dict = {}
+    collection_size = 0
     files = [f for f in listdir(in_dir) if isfile(
         join(in_dir, f))]  # all files from directory
     sorted_files = sorted(files, key=lambda f: int(
@@ -88,9 +89,12 @@ def build_index(in_dir, out_dict, out_postings):
                 index_dict[t] = docFreq
             else:
                 index_dict[t] = 1
-            docLength += (1+math.log10(postings_dict[t][int(file)]))**2
+            docLength += math.pow(1+math.log10(postings_dict[t][int(file)]),2)
         docLength = math.sqrt(docLength)
         docLengths_dict[int(file)] = docLength
+
+        # Increment collection size
+        collection_size+=1
 
     # Sort index_dict
     sorted_index_dict_array = sorted(index_dict.items())
@@ -121,8 +125,8 @@ def build_index(in_dir, out_dict, out_postings):
     postings_out.close()
     # Final dictionary is now {term : [termID,docFrequency,charOffSet,strLength]}
 
-    # Save index and length dictionaries using pickle
-    pickle.dump([sorted_index_dict, docLengths_dict], open(out_dict, "wb"))
+    # Save index, length dictionaries and collection size using pickle
+    pickle.dump([sorted_index_dict, docLengths_dict,collection_size], open(out_dict, "wb"))
     print('done!')
 
 

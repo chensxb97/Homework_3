@@ -30,12 +30,12 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # Open and load dictionary
     # Sorted index dictionary is {term : [termID,docFrequency,charOffSet,strLength]}
     # Document length dictionary is {docID: cosine normalized document length}
+    # Collection size: Total number of documents, to be used for idf calculation
     in_dict = open(dict_file, 'rb')
     sorted_dict = pickle.load(in_dict)
     sorted_index_dict = sorted_dict[0]
     docLengths_dict = sorted_dict[1]
-    # Number of documents calculated for idf calculation
-    number_of_documents = len(docLengths_dict)
+    collection_size = sorted_dict[2]
 
     # Open posting lists, but not loaded into memory
     postings = open(postings_file, 'r')
@@ -44,7 +44,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     queries = open(queries_file, 'r')
 
     # Process queries ()
-    # Create query_array = [{word: word frequency in query1},{word: word frequency in query2}...]
+    # query_array = [{word: word frequency in query1},{word: word frequency in query2}...]
     query_array = []
     for line in queries:
         for sentence in nltk.sent_tokenize(line):
@@ -61,11 +61,11 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             for word in query_dict.keys():
                 # Calculate tf-wt
                 q_tf = query_dict[word]
-                q_tf_wt = 1 + math.log(q_tf, 10)
+                q_tf_wt = 1 + math.log10(q_tf)
                 # Calculate idf
                 if word in sorted_index_dict.keys():
                     q_df = sorted_index_dict[word][1]
-                    q_idf = math.log(number_of_documents/q_df, 10)
+                    q_idf = math.log10(collection_size/q_df)
                 else:
                     idf = 0
                 q_wt = q_tf_wt * q_idf
@@ -78,10 +78,11 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 normalize_wt = q_wt/math.sqrt(normalize_query)
                 query_dict[word] = normalize_wt
 
-            print(query_dict)
+            print('QUERY DICTIONARY\n',query_dict)
 
             # Parse postings list for each word for valid documents which contains these words
             # Each document we will have an array of numbers for each word in the query
+            # document_dict = {document1: {word1: tf1, word2: tf2}, document2:{}...} 
             document_dict = {}
             for word in query_dict.keys():
                 if word in sorted_index_dict.keys():
@@ -90,31 +91,32 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     strLength = sorted_index_dict[word][3]
                     postings.seek(charOffset, 0)
                     posting_str = (postings.read(strLength))
-                    p_array = posting_str.split(',')
-                    for p in p_array:
+                    posting_array = posting_str.split(',')
+                    for p in posting_array:
                         documentID = p.split('^')[0]
                         tf_raw = p.split('^')[1]
                         document_dict[documentID] = {}
                         document_dict[documentID][word] = tf_raw
                 else:
                     pass
-
-            normalize_doc = 0
+            # Calculate the cosine normalized value for document tf-idf
             for document in document_dict.keys():
+                # Denominator for normalization of tf-idf (document)
+                normalize_doc = docLengths_dict[int(document)]
+                print('LENGTH FOR DOC {}: {}'.format(document,normalize_doc))
                 for word in query_dict.keys():
                     if word in document_dict[document].keys():
                         d_tf = int(document_dict[document][word])
-                        d_tf_wt = 1 + math.log(d_tf, 10)
+                        d_tf_wt = 1 + math.log10(d_tf)
                         document_dict[document][word] = d_tf_wt
-                        normalize_doc += math.pow(d_tf_wt, 2)
                     else:
                         document_dict[document][word] = 0
                 for word in query_dict.keys():
                     d_wt = document_dict[document][word]
-                    d_normalize_wt = d_wt/math.sqrt(normalize_doc)
+                    d_normalize_wt = d_wt/normalize_doc
                     document_dict[document][word] = d_normalize_wt
 
-            print(document_dict)
+            print('DOCUMENT DICTIONARY\n',document_dict)
 
             query_array.append(query_dict)
 

@@ -27,7 +27,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     print('running search on the queries...')
     # This is an empty method
     # Pls implement your code in below
-    
+
     # Initialise stemmer
     stemmer = PorterStemmer()
 
@@ -55,15 +55,13 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             # Store all normalized query tf-idf weights in query_dict
             query_dict = process_query(
                 sentence, sorted_index_dict, collection_size, stemmer)
-            #print('QUERY DICTIONARY\n',query_dict)
 
             # Store all normalized document tf weights in document_dict
             document_dict = process_documents(
                 query_dict, sorted_index_dict, postings)
-            #print('DOCUMENT DICTIONARY\n',document_dict)
 
             # Generates the top 10 documents for the query
-            scores = process_scores(query_dict, document_dict,docLengths_dict)
+            scores = process_scores(query_dict, document_dict, docLengths_dict)
 
             query_results.append(scores)
 
@@ -78,6 +76,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     results_file.write(' ')
             results_file.write('\n')
     print('done!')
+
 
 def process_query(input_query, sorted_index_dict, collection_size, stemmer):
     query_dict = {}
@@ -149,7 +148,7 @@ def process_documents(query_dictionary, sorted_index_dict, input_postings):
     return document_dict
 
 
-def process_scores(query_dictionary, document_dictionary,docLengths_dict):
+def process_scores(query_dictionary, document_dictionary, docLengths_dict):
     if query_dictionary == None:
         return None
     result = []
@@ -160,10 +159,10 @@ def process_scores(query_dictionary, document_dictionary,docLengths_dict):
         for term in query_dictionary.keys():
             doc_wt = document_dictionary[docID][term]
             term_wt = query_dictionary[term]
-            docScore+=doc_wt*term_wt
+            docScore += doc_wt*term_wt
         # Normalizing the cosine product value with the docLength
-        docScore/=normalize_doc
-        result.append((docID,docScore))
+        docScore /= normalize_doc
+        result.append((docID, docScore))
     # Use heapq library 'nlargest' function to return top 10 results in O(10logn) time instead of sorting the entire array which would be O(nlogn) time
     return nlargest(10, result, key=lambda x: x[1])
 

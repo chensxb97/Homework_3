@@ -58,10 +58,10 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
             # Store all normalized document tf weights in document_dict
             document_dict = process_documents(
-                query_dict, sorted_index_dict, postings)
+                query_dict, sorted_index_dict, docLengths_dict, postings)
 
             # Generates the top 10 documents for the query
-            scores = process_scores(query_dict, document_dict, docLengths_dict)
+            scores = process_scores(query_dict, document_dict)
 
             query_results.append(scores)
 
@@ -114,7 +114,7 @@ def process_query(input_query, sorted_index_dict, collection_size, stemmer):
     return query_dict
 
 
-def process_documents(query_dictionary, sorted_index_dict, input_postings):
+def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, input_postings):
     # document_dict = {document1: {word1: tf1, word2: tf2}, document2:{}...}
     if query_dictionary == None:
         return None
@@ -135,33 +135,32 @@ def process_documents(query_dictionary, sorted_index_dict, input_postings):
         else:
             pass
     for document in document_dict.keys():
+        # Denominator for normalization of tf-idf (docLength)
+        normalize_doc = docLengths_dict[int(document)]
         for word in query_dictionary.keys():
             if word in document_dict[document].keys():
                 d_tf = int(document_dict[document][word])
                 # Calculate tf-wt
                 d_tf_wt = 1 + math.log10(d_tf)
-                # Store tf-wt for each word in document back into dictionary
-                document_dict[document][word] = d_tf_wt
+                # Normalize each tf-wt by the document length
+                d_normalize_wt = d_tf_wt/normalize_doc
+                # Store normalized weight for each word in document back into dictionary
+                document_dict[document][word] = d_normalize_wt
             else:
                 document_dict[document][word] = 0
-
     return document_dict
 
 
-def process_scores(query_dictionary, document_dictionary, docLengths_dict):
+def process_scores(query_dictionary, document_dictionary):
     if query_dictionary == None:
         return None
     result = []
     for docID in document_dictionary.keys():
-        # Denominator for normalization of tf-idf (docLength)
-        normalize_doc = docLengths_dict[int(docID)]
         docScore = 0
         for term in query_dictionary.keys():
             doc_wt = document_dictionary[docID][term]
             term_wt = query_dictionary[term]
             docScore += doc_wt*term_wt
-        # Normalizing the cosine product value with the docLength
-        docScore /= normalize_doc
         result.append((docID, docScore))
     # Use heapq library 'nlargest' function to return top 10 results in O(10logn) time instead of sorting the entire array which would be O(nlogn) time
     return nlargest(10, result, key=lambda x: x[1])

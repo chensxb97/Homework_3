@@ -135,7 +135,7 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
         else:
             pass
     for document in document_dict.keys():
-        # Denominator for normalization of tf-idf (docLength)
+        # Denominator for cosine normalization of tf (docLength)
         normalize_doc = docLengths_dict[int(document)]
         for word in query_dictionary.keys():
             if word in document_dict[document].keys():

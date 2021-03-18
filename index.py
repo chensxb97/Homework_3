@@ -89,6 +89,7 @@ def build_index(in_dir, out_dict, out_postings):
                 index_dict[t] = docFreq
             else:
                 index_dict[t] = 1
+            # docLength of a document is computed for tf (document) cosine normalization
             docLength += math.pow(1+math.log10(postings_dict[t][int(file)]), 2)
         docLength = math.sqrt(docLength)
         docLengths_dict[int(file)] = docLength

@@ -80,7 +80,6 @@ def process_query(input_query, sorted_index_dict, collection_size, stemmer):
     '''
     Processes and extracts terms from the input query.
     Returns a dictionary containing the normalized tf-idf weights for each term.
-
     query_dict = {term: normalized tf-idf-wt}
 
     '''
@@ -134,7 +133,6 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
     '''
     Checks for each term recorded in the input query dictionary with the main index dictionary.
     Returns a document dictionary containing the normalized tf weights for each term found in the main index dictionary.
-
     document_dict = {document1: {term1: tf1, term2: tf2}, document2:{}...}
 
     '''
@@ -183,7 +181,8 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
 
 def process_scores(query_dictionary, document_dictionary):
     '''
-    Returns a constructed posting list in string format
+    Computes the cosine-normalized query-document score for all terms for each document.
+    Returns a list of the top 10 most relevant documents based on the query-document score. 
 
     '''
     # Returns an empty result if query dictionary is empty
@@ -191,7 +190,7 @@ def process_scores(query_dictionary, document_dictionary):
         return None
 
     result = []
-    
+
     for docID in document_dictionary.keys():
         docScore = 0
         for term in query_dictionary.keys():

@@ -80,7 +80,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 def process_query(input_query, sorted_index_dict, collection_size, stemmer):
     query_dict = {}
-    for word in nltk.word_tokenize(input_query):
+    for word in input_query.split():
         word = word.lower()
         word = stemmer.stem(word)
         if word in query_dict.keys():

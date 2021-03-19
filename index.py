@@ -13,9 +13,6 @@ from os import listdir
 from os.path import join, isfile
 from nltk.stem.porter import PorterStemmer
 
-# python3 index.py -i './sample_data' -d dictionary.txt -p postings.txt
-
-
 def usage():
     print("usage: " +
           sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
@@ -47,7 +44,7 @@ def build_index(in_dir, out_dict, out_postings):
         file_path = join(in_dir, file)
         f = open(file_path, "r")
 
-        # Store all words in a list, used to track termFrequency
+        # Store all observed words in a list, used to track termFrequency
         termList = []
         # Set data structure is used to store the unique words only
         termSet = set()
@@ -101,7 +98,7 @@ def build_index(in_dir, out_dict, out_postings):
     sorted_index_dict_array = sorted(index_dict.items())
     sorted_index_dict = {}
     for termID, (term, value) in enumerate(sorted_index_dict_array):
-        # Addition of 1 to ensure termID starts of from value 1
+        # Addition of 1 ensures that termIDs starts from 1
         termID += 1
         docFrequency = value
         sorted_index_dict[term] = [termID, docFrequency]
@@ -113,7 +110,7 @@ def build_index(in_dir, out_dict, out_postings):
     # Output postings file
     postings_out = open(out_postings, 'w')
 
-    # Generate and write postingStrings to postings file
+    # Generate and write posting strings to postings file
     # Store charOffset and stringLength in sorted_index_dict
     char_offset = 0
     for (term, term_dict) in sorted_postings_dict_array:
@@ -133,6 +130,9 @@ def build_index(in_dir, out_dict, out_postings):
 
 
 def create_postings(term_dictionary):
+    '''
+    Returns a constructed posting list in string format
+    '''
     result = ''
     for docId, freq in term_dictionary.items():
         result += str(docId)

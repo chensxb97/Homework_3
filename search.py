@@ -10,9 +10,7 @@ import time
 from nltk.stem.porter import PorterStemmer
 from heapq import nlargest
 
-
 # python3 search.py -d dictionary.txt -p postings.txt  -q queries.txt -o results.txt
-
 
 def usage():
     print("usage: " +
@@ -34,7 +32,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # Open and load dictionary
     # Sorted index dictionary is {term : [termID,docFrequency,charOffSet,strLength]}
     # Document length dictionary is {docID: cosine normalized document length}
-    # Collection size: Total number of documents, to be used for idf calculation
+    # Collection size is the total number of documents, to be used for idf calculation
     in_dict = open(dict_file, 'rb')
     sorted_dict = pickle.load(in_dict)
     sorted_index_dict = sorted_dict[0]
@@ -47,7 +45,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # Open queries file
     queries = open(queries_file, 'r')
 
-    # Store the results for each query
+    # Process each query and store the results in a list
     # query_results = [[result for query1],[result for query 2]...]
     query_results = []
     for query in queries:
@@ -65,13 +63,13 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
             query_results.append(scores)
 
-    # Write results into given results_file
+    # Write query results into output results_file
     with open(results_file, 'w') as results_file:
         for result in query_results:
             # If result is empty, just write an empty line
             # If result is not empty, write each documentID (starting from highest rank) with a whitespace separating each documentID
             if result is not None:
-                for index, (docID, score) in enumerate(result):
+                for docID, score in result:
                     results_file.write(docID)
                     results_file.write(' ')
             results_file.write('\n')
@@ -79,7 +77,16 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 
 def process_query(input_query, sorted_index_dict, collection_size, stemmer):
+    '''
+    Processes and extracts terms from the input query.
+    Returns a dictionary containing the normalized tf-idf weights for each term.
+
+    query_dict = {term: normalized tf-idf-wt}
+
+    '''
     query_dict = {}
+
+    # Word processing and tokenisation for query terms
     for word in input_query.split():
         word = word.lower()
         word = stemmer.stem(word)
@@ -87,25 +94,34 @@ def process_query(input_query, sorted_index_dict, collection_size, stemmer):
             query_dict[word] += 1
         else:
             query_dict[word] = 1
+
     # Denominator for normalization of tf-idf (query)
     normalize_query = 0
+
+    # Calcualte tf-idf-wt for query terms
     for word in query_dict.keys():
         # Calculate tf-wt
         q_tf = query_dict[word]
         q_tf_wt = 1 + math.log10(q_tf)
+
         # Calculate idf
         if word in sorted_index_dict.keys():
             q_df = sorted_index_dict[word][1]
             q_idf = math.log10(collection_size/q_df)
         else:
             q_idf = 0
+
         q_wt = q_tf_wt * q_idf
+
         # Store wt for each word in query back into dictionary
         query_dict[word] = q_wt
         normalize_query += math.pow(q_wt, 2)
+
+    # Returns None if no query terms exist in the main index dictionary
     if normalize_query == 0:
         return None
-    # Calculate the cosine normalized value for query
+
+    # Perform cosine normalization
     for word in query_dict.keys():
         q_wt = query_dict[word]
         normalize_wt = q_wt/math.sqrt(normalize_query)
@@ -115,10 +131,20 @@ def process_query(input_query, sorted_index_dict, collection_size, stemmer):
 
 
 def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, input_postings):
-    # document_dict = {document1: {word1: tf1, word2: tf2}, document2:{}...}
+    '''
+    Checks for each term recorded in the input query dictionary with the main index dictionary.
+    Returns a document dictionary containing the normalized tf weights for each term found in the main index dictionary.
+
+    document_dict = {document1: {term1: tf1, term2: tf2}, document2:{}...}
+
+    '''
+    # Returns None if no query dictionary is empty
     if query_dictionary == None:
         return None
+
     document_dict = {}
+
+    # Extract and process posting lists from main index dictionary
     for word in query_dictionary.keys():
         if word in sorted_index_dict.keys():
             charOffset = sorted_index_dict[word][2]
@@ -134,6 +160,8 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
                 document_dict[documentID][word] = int(tf_raw)
         else:
             pass
+
+    # Calculate tf-wt for each document's terms
     for document in document_dict.keys():
         # Denominator for cosine normalization of tf (docLength)
         normalize_doc = docLengths_dict[int(document)]
@@ -142,8 +170,10 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
                 d_tf = int(document_dict[document][word])
                 # Calculate tf-wt
                 d_tf_wt = 1 + math.log10(d_tf)
-                # Normalize each tf-wt by the document length
+                
+                # Perform cosine normalization
                 d_normalize_wt = d_tf_wt/normalize_doc
+                
                 # Store normalized weight for each word in document back into dictionary
                 document_dict[document][word] = d_normalize_wt
             else:
@@ -152,9 +182,16 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
 
 
 def process_scores(query_dictionary, document_dictionary):
+    '''
+    Returns a constructed posting list in string format
+
+    '''
+    # Returns an empty result if query dictionary is empty
     if query_dictionary == None:
         return None
+
     result = []
+    
     for docID in document_dictionary.keys():
         docScore = 0
         for term in query_dictionary.keys():
@@ -162,6 +199,7 @@ def process_scores(query_dictionary, document_dictionary):
             term_wt = query_dictionary[term]
             docScore += doc_wt*term_wt
         result.append((docID, docScore))
+
     # Use heapq library 'nlargest' function to return top 10 results in O(10logn) time instead of sorting the entire array which would be O(nlogn) time
     return nlargest(10, result, key=lambda x: x[1])
 

@@ -12,6 +12,7 @@ from heapq import nlargest
 
 # python3 search.py -d dictionary.txt -p postings.txt  -q queries.txt -o results.txt
 
+
 def usage():
     print("usage: " +
           sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -155,9 +156,9 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
                 tf_raw = p.split('^')[1]
                 if documentID not in document_dict.keys():
                     document_dict[documentID] = {}
-                document_dict[documentID][word] = int(tf_raw)
-        else:
-            pass
+                # Check if tf_raw can be converted into a valid integer
+                if int(tf_raw):
+                    document_dict[documentID][word] = int(tf_raw)
 
     # Calculate tf-wt for each document's terms
     for document in document_dict.keys():
@@ -168,10 +169,10 @@ def process_documents(query_dictionary, sorted_index_dict, docLengths_dict, inpu
                 d_tf = int(document_dict[document][word])
                 # Calculate tf-wt
                 d_tf_wt = 1 + math.log10(d_tf)
-                
+
                 # Perform cosine normalization
                 d_normalize_wt = d_tf_wt/normalize_doc
-                
+
                 # Store normalized weight for each word in document back into dictionary
                 document_dict[document][word] = d_normalize_wt
             else:

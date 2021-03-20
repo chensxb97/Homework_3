@@ -10,7 +10,7 @@ We're using Python Version 3.7.4 for this assignment.
 == General Notes about this assignment ==
 = Indexing =
 
-The index dictionary is built by processing terms from the Reuters Training dataset. After removing all punctuation, case-folding all words to lower case and stemming (PorterStemmer), 
+The index dictionary is built by processing terms from the Reuters Training dataset. After removing all punctuation, case-folding all words to lower case and stemming(PorterStemmer), 
 terms are stored in both a set(to ensure no duplicates) and a list(to track term frequencies), and are saved in the dictionary, sorted by term in ascending order, with the 
 following format: {term: [termID, docFrequency, charOffset, stringLength]}.
 

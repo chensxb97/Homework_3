@@ -5,18 +5,12 @@ e0673253@u.nus.edu (A0228420N)
 
 == Python Version ==
 
-We're using Python Version 3.7.4 for
-this assignment.
+We're using Python Version 3.7.4 for this assignment.
 
 == General Notes about this assignment ==
-
-Give an overview of your program, describe the important algorithms/steps 
-in your program, and discuss your experiments in general.  A few paragraphs 
-are usually sufficient.
-
 = Indexing =
 
-The index dictionary is built by processing terms from the Reuters Training dataset. After removing all punctuation, case-folding all words to lower case and stemming, 
+The index dictionary is built by processing terms from the Reuters Training dataset. After removing all punctuation, case-folding all words to lower case and stemming (PorterStemmer), 
 terms are stored in both a set(to ensure no duplicates) and a list(to track term frequencies), and are saved in the dictionary, sorted by term in ascending order, with the 
 following format: {term: [termID, docFrequency, charOffset, stringLength]}.
 
@@ -28,7 +22,7 @@ following format: {term: [termID, docFrequency, charOffset, stringLength]}.
 
 In addition to the index dictionary, we also keep track of the collection size by incrementing its value after processing each document. We also pre-compute the normalized
 document lengths for each document and store them in a separate document lengths dictionary, with the following format: {docID: docLength}. The lengths are computed by taking 
-the square root of the sum of squared (1+ log10(termFrequency)) for all unique terms in each document. These values will be used for cosine normalization of tf-idf weights in search.py. 
+the square root of the sum of squared (1+ log10(termFrequency)) for all unique terms in each document. These values will be used for cosine normalization of the document tf weights in search.py. 
 We also created a postings dictionary that stores the docId-termFrequency pairs for each term using the 
 following format: {term: {docId: termFrequency}}. 
 
@@ -43,27 +37,25 @@ Lastly, we save the finalised index dictionary, document lengths dictionary and 
 The search algorithm takes in the pickled index dictionary, document lengths dictionary, collection size, postings file and queries file as input arguments.
 The objective is to process each query and obtain the top K documents that are relevant to the query using the vector space model.
 
+Processing queries (tf-idf, ltc):
 Breaking down each query, we extract the terms(by performing the same pre-processing as in index.py) and store them and their individual computed tf-weights
 (tf-weight = 1+ log10(tf)) in a dictionary. For every term, we obtain their docFrequencies by accessing the index dictionary and compute their individual idfs (idf = log10(collection_size/docFrequency). 
 We compute and store each term's tf-idf weight score back in the dictionary. Lastly, we normalize each weight by the query's length.
 The resulting query dictionary has the following format : {term1: tf-idf1/queryLength, term2: tf-idf2/queryLength}
 
+Processing documents (tf-wt, lnc):
 Iterating through the terms in the query dictionary, we extract the posting strings from the posting file using seek(charOffset) and read(strLength). 
 We then obtain and compute each document's term's tf-weight as usual. Similarly, we normalize each weight by the pre-computed document's length from the document lengths dictionary.
 We then store each document term's normalized tf-weight in a dictionary of dictionaries.
 The resulting document dictionary has the following format: {doc1:{term1:tf-wt1/docLength1,term2:tf-wt2/docLength1},doc2:{term1:tf-wt1/docLength2,term2:tf-wt2/docLength2}}
 
+Final Processing:
 To compute the vector scores, we iterate through both query and document dictionaries and sum up the tf-wt(document)*tf-idf(query) for each document, storing the scores in a list. 
 To arrive at the top K scores, we use the heapq library's 'nlargest' function to return the results in O(Klogn) time instead of sorting the entire array which would take at least O(nlogn) time.
 
-Lastly, we write and save the top K scores for each query line by line to the output results file.
+Lastly, we write and save the top K scores for each query line by line to the output results file. For this program, we set K as 10 as per the assignment requirements.
 
 == Files included with this submission ==
-
-List the files in your submission here and provide a short 1 line
-description of each file.  Make sure your submission's files are named
-and formatted correctly.
-
 > index.py
 Builds the index necessary for searching - returns the index dictionary, document length dictionary, collection size and postings file
 

@@ -199,7 +199,7 @@ def process_scores(query_dictionary, document_dictionary):
             docScore += doc_wt*term_wt
         result.append((docID, docScore))
 
-    # Use heapq library 'nlargest' function to return top 10 results in O(10logn) time instead of sorting the entire array which would be O(nlogn) time
+    # Use heapq library 'nlargest' function to return top 10 results in O(10logn) time instead of sorting the entire array which takes O(nlogn) time
     return nlargest(10, result, key=lambda x: x[1])
 
 

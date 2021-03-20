@@ -16,7 +16,7 @@ are usually sufficient.
 
 = Indexing =
 
-The index dictionary is built by processing terms from the Reuters Training dataset. After removing all punctuation, case-folding all words to lower case and stemming, terms are stored in both a set (to ensure no duplicates) and a list (to track term frequencies), and are saved in the dictionary, sorted by term in ascending order, with the 
+The index dictionary is built by processing terms from the Reuters Training dataset. After removing all punctuation, case-folding all words to lower case and stemming, terms are stored in both a set(to ensure no duplicates) and a list(to track term frequencies), and are saved in the dictionary, sorted by term in ascending order, with the 
 following format: {term: [termID, docFrequency, charOffset, stringLength]}.
 
 - term(string) refers to the processed and stemmed word
@@ -43,12 +43,13 @@ Breaking down each query, we extract the terms(by performing the same pre-proces
 (tf-weight = 1+ log10(tf)) in a dictionary. For every term, we obtain their docFrequencies by accessing the index dictionary and compute their individual idfs (idf = log10(collection_size/docFrequency). We compute and store each term's tf-idf weight score back in the dictionary. Lastly, we normalize each weight by the query's length.
 The resulting query dictionary has the following format : {term1: tf-idf1/queryLength, term2: tf-idf2/queryLength}
 
-Iterating through the terms in the query dictionary, we extract the posting strings from the posting file using seek(charOffset) and read(strLength). We then obtain and compute each document's term's tf-weight as usual, storing them in a dictionary of dictionaries.
-The resulting document dictionary has the following format: {doc1:{term1:tf-wt1,term2:tf-wt2},doc2:{term1:tf-wt1,term2:tf-wt2}}
+Iterating through the terms in the query dictionary, we extract the posting strings from the posting file using seek(charOffset) and read(strLength). We then obtain and compute each document's term's tf-weight as usual. Similarly, we normalize each weight by the pre-computed document's length from the document lengths dictionary.
+We then store each document term's normalized tf-weight in a dictionary of dictionaries.
+The resulting document dictionary has the following format: {doc1:{term1:tf-wt1/docLength1,term2:tf-wt2/docLength1},doc2:{term1:tf-wt1/docLength2,term2:tf-wt2/docLength2}}
 
-To compute the vector scores, we iterate through both dictionaries and sum up the tf-wt(document)*tf-idf(query) for each document, storing the scores in a list. To arrive at the top K scores, we used the heapq library's 'nlargest' function to return the results in O(Klogn) time instead of sorting the entire array would take at least O(nlogn) time.
+To compute the vector scores, we iterate through both query and document dictionaries and sum up the tf-wt(document)*tf-idf(query) for each document, storing the scores in a list. To arrive at the top K scores, we use the heapq library's 'nlargest' function to return the results in O(Klogn) time instead of sorting the entire array which would take at least O(nlogn) time.
 
-Lastly, we write and save the top K scores for each query to the output results file.
+Lastly, we write and save the top K scores for each query line by line to the output results file.
 
 == Files included with this submission ==
 
@@ -103,6 +104,9 @@ https://www.zframez.com/tutorials/python-tutorial-file-operations.html
 
 Using pickle to save multiple dictionaries
 https://stackoverflow.com/questions/25318987/working-with-two-dictionaries-in-one-pickle-file
+
+Difference between 'split' and 'tokenize' methods when pre-processing text
+https://stackoverflow.com/questions/35345761/python-re-split-vs-nltk-word-tokenize-and-sent-tokenize
 
 Heapq library where we utilised the nlargest function
 https://docs.python.org/3/library/heapq.html

@@ -75,7 +75,9 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     result_line = result_line + str(docID) + ' '
             # Remove final whitespace in results line
             results_file.write(result_line[:-1])
-            results_file.write('\n')
+            # Ensure final result does not print new line in results file
+            if result != query_results[-1]:
+                results_file.write('\n')
     print('done!')
 
 

@@ -67,12 +67,14 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # Write query results into output results_file
     with open(results_file, 'w') as results_file:
         for result in query_results:
+            result_line = ""
             # If result is empty, just write an empty line
             # If result is not empty, write each documentID (starting from highest rank) with a whitespace separating each documentID
             if result is not None:
                 for docID, score in result:
-                    results_file.write(docID)
-                    results_file.write(' ')
+                    result_line = result_line + str(docID) + ' '
+            # Remove final whitespace in results line
+            results_file.write(result_line[:-1])
             results_file.write('\n')
     print('done!')
 
